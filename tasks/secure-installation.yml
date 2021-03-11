@@ -25,6 +25,12 @@
       register: mysql_temp_password_test_result
       ignore_errors: yes
 
+    - name: Remove validate_password plugin (to allow insecure passwords)
+      shell: >
+        mysql -NBe 'ALTER USER "{{ mysql_root_username }}"@"localhost" IDENTIFIED WITH mysql_native_password BY "{{ mysql_root_temp_password.stdout }}"; uninstall plugin validate_password;'
+        --connect-expired-password
+      when: ( 'connect-expired-password' in mysql_temp_password_test_result.stdout and mysql_remove_validate_password_plugin )
+
     - name: Update MySQL root password for localhost root account (5.7.x).
       shell: >
         mysql -NBe 'ALTER USER "{{ mysql_root_username }}"@"localhost" IDENTIFIED WITH mysql_native_password BY "{{ mysql_root_password }}";'
